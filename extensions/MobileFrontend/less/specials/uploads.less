@@ -1,0 +1,37 @@
+@import "minerva.variables";
+@import "minerva.mixins";
+
+.image-list {
+	margin: 20px @contentMargin 0;
+
+	li {
+		text-align: center;
+		padding-bottom: 20px;
+
+		p { // description
+			color: @colorGray5;
+			line-height: 1.2;
+		}
+	}
+}
+
+.ctaUploadPhoto {
+	padding: .5em;
+
+	h2 {
+		font-size: 1.25em;
+		margin: 0 0 .5em;
+		text-align: center;
+	}
+}
+
+@media all and (min-width: @wgMFDeviceWidthTablet) {
+	.image-list {
+		margin: auto;
+	}
+
+	.ctaUploadPhoto {
+		border-bottom: none;
+		background: none;
+	}
+}

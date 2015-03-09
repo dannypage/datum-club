@@ -1,0 +1,90 @@
+MW_INSTALL_PATH ?= ../..
+MEDIAWIKI_LOAD_URL ?= http://localhost/w/load.php
+
+gems:
+	bundle install
+
+clean:
+	rm -Rf dev-scripts/remotes
+	rm -Rf docs
+
+remotes:
+	@dev-scripts/remotecheck.sh
+
+message: remotes
+	@python dev-scripts/remotes/message.py
+
+# Requires GERRIT_USERNAME to be defined - lists patchsets you need to amend
+mygerrit: remotes
+	@dev-scripts/remotes/gerrit.py --project 'mediawiki/extensions/MobileFrontend' --byuser ${GERRIT_USERNAME} --ltscore 0
+
+gerrit: remotes
+	@dev-scripts/remotes/gerrit.py --project 'mediawiki/extensions/MobileFrontend' --gtscore -1
+
+kss: kssnodecheck
+	mkdir -p docs
+	# FIXME: Use more up to date Ruby version
+	$(eval KSS_MF_RL_TMP := $(shell mktemp /tmp/tmp.XXXXXXXXXX))
+	curl -sG "${MEDIAWIKI_LOAD_URL}?modules=skins.minerva.chrome.styles|skins.minerva.content.styles|skins.minerva.drawers.styles|mobile.toast.styles|mobile.stable.styles|mobile.overlays|mobile.overlays.beta|mobile.pagelist.styles&only=styles" > $(KSS_MF_RL_TMP)
+	@node_modules/.bin/kss-node less/ docs/styleguide/ --css $(KSS_MF_RL_TMP) -t styleguide-template
+	@rm $(KSS_MF_RL_TMP)
+
+jsduck: gems
+	rm -rf docs/js
+	mkdir -p docs
+	jsduck ${MW_INSTALL_PATH}/extensions/Mantle/javascripts/ javascripts/ --output docs/js/ --external=OO.EventEmitter,jQuery.Object,Hogan.Template,HandleBars.Template,jQuery.Deferred,mw.user --exclude=javascripts/external --ignore-global
+
+phpdoc: nodecheck
+	mkdir -p docs
+	rm -rf docs/php
+	mkdir -p docs/php/log
+	@php node_modules/grunt-phpdocumentor/bin/phpDocumentor.phar -c phpdoc.xml
+
+docs: kss jsduck phpdoc
+
+kssnodecheck:
+	@dev-scripts/kss-node-check.sh
+
+nodecheck:
+	@dev-scripts/nodecheck.sh
+
+jshinttests: nodecheck
+	@node_modules/.bin/jshint tests/qunit/* --config .jshintrc
+
+jshint: nodecheck jshinttests
+	@node_modules/.bin/jshint javascripts/* --config .jshintrc
+
+dependencies: nodecheck kssnodecheck phpcheck remotes
+
+phpcheck:
+	@dev-scripts/phpcheck.sh
+
+phplint: phpcheck
+	@dev-scripts/phplint.sh
+
+phpunit:
+	cd ${MW_INSTALL_PATH}/tests/phpunit && php phpunit.php --configuration ${MW_INSTALL_PATH}/extensions/MobileFrontend/tests/phpunit/mfe.suite.xml --group=MobileFrontend
+
+qunit:
+	@dev-scripts/qunit.sh
+
+qunitdebug:
+	@dev-scripts/qunit.sh 'MobileFrontend&debug=true'
+
+tests: jshint phpunit qunit
+
+cucumber:
+	@dev-scripts/cucumber.sh
+
+checkcucumber:
+	@dev-scripts/cucumber_check.sh
+
+lint: jshint phplint checkcucumber
+
+installhooks:
+	ln -sf ${PWD}/dev-scripts/pre-commit .git/hooks/pre-commit
+	ln -sf ${PWD}/dev-scripts/pre-review .git/hooks/pre-review
+
+# user must create W3CValidationTest wiki page with text 'Hello world' for this to work
+validatehtml:
+	@dev-scripts/validatehtml.sh

@@ -1,0 +1,23 @@
+body.navigation-full-screen {
+	#mw-mf-page-left {
+		// !important needed to override media query rules set in mainmenu.less
+		width: 100% !important;
+		right: 0 !important;
+		display: block !important;
+		// Alpha introduces animations
+		visibility: visible !important;
+	}
+
+	#mw-mf-page-center {
+		display: none;
+	}
+}
+
+.client-nojs {
+	#mw-mf-page-left {
+		.icon {
+			background-image: none;
+			padding-left: 0;
+		}
+	}
+}

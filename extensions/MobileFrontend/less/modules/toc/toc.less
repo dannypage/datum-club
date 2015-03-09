@@ -1,0 +1,68 @@
+@import "minerva.mixins";
+@import "minerva.variables";
+
+@paddingHorizontal: 24px;
+@iconSize: 16px;
+@iconHeadingGap: 12px;
+@paddingVertical: 16px;
+@fontSize: .8em;
+
+.client-js .toc-mobile {
+	// FIXME: Use predefined colors?
+	background-color: @colorGray15;
+	border: solid 1px @grayLightest;
+	font-size: 1.3em;
+	float: left;
+	clear: left;
+	margin: 1em 0;
+
+	h2 {
+		font-family: @fontFamily;
+		font-size: @fontSize;
+		line-height: @iconSize;
+		background-position: right center;
+		font-weight: bold;
+		padding: @paddingVertical @paddingHorizontal @paddingVertical (@paddingHorizontal + @iconSize + @iconHeadingGap);
+		border-bottom: none;
+		// add right padding to the chevron without reducing tapable area
+		border-right: @paddingHorizontal solid transparent;
+
+		.icon {
+			// @todo: switch to .background-image-svg() when bug 66091 is fixed
+			background-image: url('images/contents-ltr.png');
+			background-image: -webkit-linear-gradient(transparent, transparent), url('images/contents-ltr.svg');
+			background-image: linear-gradient(transparent, transparent), url('images/contents-ltr.svg');
+			width: @iconSize;
+			height: @iconSize;
+			display: block;
+			position: absolute;
+			left: @paddingVertical;
+			top: @paddingVertical;
+		}
+	}
+
+	.collapsible-block {
+		// Override default toggle styles
+		border-bottom: none;
+		margin-left: @paddingHorizontal + @iconSize + @iconHeadingGap;
+		margin-right: @paddingHorizontal;
+		font-size: (7 * @fontSize) / 8;
+
+		> ul {
+			padding-bottom: @fontSize + @headingMargin;
+		}
+
+		ul {
+			// FIXME: Shouldn't have to do this. Add another class to normal sections to distinguish them from this content_block
+			list-style: none;
+			// Account for border at bottom of heading
+			margin-bottom: 1px;
+
+			li {
+				padding-top: @fontSize;
+				// This ensures when a heading spills to a second line it can be distinguished from other headings
+				line-height: 1.2;
+			}
+		}
+	}
+}
